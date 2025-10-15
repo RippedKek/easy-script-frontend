@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --easey: cubic-bezier(.17,.67,.83,.67);
+}
+
+html, body {
+  height: 100%;
+}
+
+@layer base {
+  body {
+    @apply bg-light-bg text-light-text transition-colors duration-300;
+  }
+  .dark body, body.dark {
+    @apply bg-dark-bg text-dark-text;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl shadow-soft border border-light-subtle/50 bg-light-card dark:bg-dark-card dark:border-dark-subtle/60;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-transform duration-200 active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-light-primary text-white hover:bg-light-primaryDark dark:bg-dark-primary dark:hover:bg-dark-primaryDark;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-light-subtle/40 dark:hover:bg-dark-subtle/40;
+  }
+  .input {
+    @apply w-full rounded-xl border border-light-subtle/60 bg-white/80 dark:bg-slate-900/60 dark:border-dark-subtle/60 px-4 py-2 outline-none focus:ring-2 focus:ring-light-primary/40 dark:focus:ring-dark-primary/40;
+  }
+  .grid-cards {
+    @apply grid gap-6 md:grid-cols-2;
+  }
+}
