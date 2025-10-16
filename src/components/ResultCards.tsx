@@ -161,7 +161,7 @@ export default function ResultCards({ data }: { data: CheckScriptsResponse }) {
               Assessment Results
             </h3>
           </div>
-          {marksEntries.length > 5 && (
+          {marksEntries.length > 3 && (
             <button
               className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors'
               onClick={() => setShowAllMarks((s) => !s)}
@@ -263,7 +263,7 @@ export default function ResultCards({ data }: { data: CheckScriptsResponse }) {
               Figures & Diagrams
             </h3>
           </div>
-          {figures.length > 6 && (
+          {figures.length > 3 && (
             <button
               className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors'
               onClick={() => setShowAllFigures((s) => !s)}
