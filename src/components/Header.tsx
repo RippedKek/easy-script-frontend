@@ -13,9 +13,7 @@ export default function Header() {
             height={36}
             className='rounded-xl'
           />
-          <div className='text-xl font-semibold tracking-tight'>
-            Easy Script
-          </div>
+          <div className='text-xl font-semibold tracking-tight'>ScriptAI</div>
         </div>
       </div>
     </header>
