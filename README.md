@@ -1,4 +1,4 @@
-# Easy Script — Frontend (Next.js + Tailwind)
+# ScriptAI — Frontend (Next.js + Tailwind)
 
 Elegant, dark/light-aware UI for your OCR-based student assessment system.
 
