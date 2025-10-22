@@ -33,6 +33,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts'
+import Header from '@/components/Header'
 
 const COLORS = [
   '#3b82f6',
@@ -52,6 +53,31 @@ export default function ResultsPage() {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('overview')
   const [fullMarks, setFullMarks] = useState<Record<string, number>>({})
+
+  // Store edited marks for each student
+  const [editedMarks, setEditedMarks] = useState<
+    Record<string, Record<string, any>>
+  >({})
+
+  // Get current marks for a student (edited if available, otherwise original)
+  const getCurrentMarks = (studentId: string) => {
+    if (editedMarks[studentId]) {
+      return editedMarks[studentId]
+    }
+    const students = result?.students
+    return students?.[studentId]?.marks || {}
+  }
+
+  // Handle marks update from ResultCards
+  const handleMarksUpdate = (
+    studentId: string,
+    updatedMarks: Record<string, any>
+  ) => {
+    setEditedMarks((prev) => ({
+      ...prev,
+      [studentId]: updatedMarks,
+    }))
+  }
 
   // derive all question ids from current batch result
   const questionIds = useMemo(() => {
@@ -83,7 +109,7 @@ export default function ResultsPage() {
     })
   }, [questionIds])
 
-  // Calculate statistics
+  // Calculate statistics with edited marks
   const stats = useMemo(() => {
     if (!result?.students) return null
 
@@ -92,17 +118,18 @@ export default function ResultsPage() {
       ([_, data]: any) => data?.status !== 'error'
     )
 
-    // Collect all marks
+    // Collect all marks (using edited marks if available)
     const allMarks: Record<string, number[]> = {}
     const studentScores: { id: string; total: number; percentage: number }[] =
       []
 
     validStudents.forEach(([id, data]: any) => {
-      if (data?.marks) {
+      const marksToUse = getCurrentMarks(id)
+      if (marksToUse) {
         let totalMarks = 0
         let totalPossible = 0
 
-        Object.entries(data.marks).forEach(([qid, mark]: any) => {
+        Object.entries(marksToUse).forEach(([qid, mark]: any) => {
           if (!allMarks[qid]) allMarks[qid] = []
           const obtainedPct = parseFloat(mark.score) || 0
           const fm = Number(fullMarks[qid] ?? 10)
@@ -179,8 +206,20 @@ export default function ResultsPage() {
         studentScores.length > 0
           ? Math.min(...studentScores.map((s) => s.total))
           : 0,
+      highestScoreStudent:
+        studentScores.length > 0
+          ? studentScores.reduce((prev, curr) =>
+              curr.total > prev.total ? curr : prev
+            )
+          : null,
+      lowestScoreStudent:
+        studentScores.length > 0
+          ? studentScores.reduce((prev, curr) =>
+              curr.total < prev.total ? curr : prev
+            )
+          : null,
     }
-  }, [result, fullMarks])
+  }, [result, fullMarks, editedMarks])
 
   const header = (
     <div className='mb-8'>
@@ -315,7 +354,7 @@ export default function ResultsPage() {
               </label>
             ))}
           </div>
-          <p className='mt-3 text-xs text-slate-500'>
+          <p className='mt-3 text-xs text-slate-500 dark:text-slate-400'>
             These values update all percentages and charts.
           </p>
         </div>
@@ -404,11 +443,16 @@ export default function ResultsPage() {
                     <Award className='w-8 h-8 text-purple-600 dark:text-purple-400' />
                   </div>
                   <div className='text-3xl font-bold text-purple-900 dark:text-purple-100'>
-                    {stats.highestScore}
+                    {stats.highestScore.toFixed(1)}
                   </div>
                   <div className='text-sm text-purple-700 dark:text-purple-300'>
                     Highest Score
                   </div>
+                  {stats.highestScoreStudent && (
+                    <div className='text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium'>
+                      {stats.highestScoreStudent.id}
+                    </div>
+                  )}
                 </div>
 
                 <div className='bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50 rounded-2xl p-6 border border-orange-200 dark:border-orange-800'>
@@ -416,11 +460,16 @@ export default function ResultsPage() {
                     <BarChart3 className='w-8 h-8 text-orange-600 dark:text-orange-400' />
                   </div>
                   <div className='text-3xl font-bold text-orange-900 dark:text-orange-100'>
-                    {stats.lowestScore}
+                    {stats.lowestScore.toFixed(1)}
                   </div>
                   <div className='text-sm text-orange-700 dark:text-orange-300'>
                     Lowest Score
                   </div>
+                  {stats.lowestScoreStudent && (
+                    <div className='text-xs text-orange-600 dark:text-orange-400 mt-1 font-medium'>
+                      {stats.lowestScoreStudent.id}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -489,7 +538,7 @@ export default function ResultsPage() {
                             {student.percentage.toFixed(1)}%
                           </div>
                           <div className='text-xs text-slate-600 dark:text-slate-400'>
-                            {student.total} marks
+                            {student.total.toFixed(1)} marks
                           </div>
                         </div>
                       </div>
@@ -546,7 +595,7 @@ export default function ResultsPage() {
                   Difficulty Analysis
                 </h3>
                 <div className='grid gap-4'>
-                  {stats.questionStats
+                  {[...stats.questionStats]
                     .sort((a, b) => a.average - b.average)
                     .map((q, index) => (
                       <div key={q.question} className='flex items-center gap-4'>
@@ -640,7 +689,7 @@ export default function ResultsPage() {
                       {student.percentage.toFixed(1)}%
                     </div>
                     <div className='text-sm text-slate-600 dark:text-slate-400'>
-                      {student.total} marks
+                      {student.total.toFixed(1)} marks
                     </div>
                   </div>
                 ))}
@@ -769,7 +818,15 @@ export default function ResultsPage() {
                   </p>
                 </div>
               ) : (
-                <ResultCards data={result.students[selectedStudent]} />
+                <ResultCards
+                  data={{
+                    ...result.students[selectedStudent],
+                    marks: getCurrentMarks(selectedStudent),
+                  }}
+                  onMarksUpdate={(updatedMarks) =>
+                    handleMarksUpdate(selectedStudent, updatedMarks)
+                  }
+                />
               )}
             </div>
           </div>
